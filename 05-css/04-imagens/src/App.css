@@ -1,0 +1,11 @@
+
+/*
+
+No CSS podemos utilizar o caminho direto. É importante colocar o ./, pois o webpack vai utilizar isso e substituir para o caminho final do site.
+
+.fundo {
+    width: 50px;
+    height: 50px;
+    background-image: url('./img/foto.jpg');
+    background-size: cover;
+  } */
