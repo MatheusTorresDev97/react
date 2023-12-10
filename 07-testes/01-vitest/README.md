@@ -124,3 +124,140 @@ test('Deve ser possível selecionar uma opção do elemento <select/>', () => {
     true
   ); // verifica se a opção de depósito foi selecionada
 });
+
+
+--
+TESTE DE ROTAS 
+import { render, screen } from '@testing-library/react';
+import { BrowserRouter, MemoryRouter, Routes, Route } from 'react-router-dom';
+import App from './paginas/Principal/App';
+import AppRoutes from './routes';
+import Cartoes from './componentes/Cartoes';
+
+describe('Rotas', () => {
+  test('Deve renderizar a rota principal', () => {
+    render(<App />, { wrapper: BrowserRouter });
+    const usuario = screen.getByText('Olá, Joana :)!');
+    expect(usuario).toBeInTheDocument();
+  });
+
+  test('Deve renderizar a rota Cartões', () => {
+    const rota = '/cartoes';
+    render(
+      <MemoryRouter initialEntries={[rota]}>
+        <Routes>
+          <Route path="/" element={<App />}>
+            <Route path="cartoes" element={<Cartoes />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const meusCartoes = screen.getByText('Meus cartões');
+    expect(meusCartoes).toHaveTextContent('Meus cartões');
+  });
+
+  test('Deve renderizar a localização da rota atual', () => {
+    const rota = '/cartoes';
+    render(
+      <MemoryRouter initialEntries={[rota]}>
+        <App />
+      </MemoryRouter>
+    );
+
+    const localizacaoAtual = screen.getByTestId('local');
+    expect(localizacaoAtual).toHaveTextContent(rota);
+  });
+
+  test('Deve renderizar a página 404', () => {
+    const rota = '/extrato';
+
+    render(
+      <MemoryRouter initialEntries={[rota]}>
+        <AppRoutes />
+      </MemoryRouter>
+    );
+
+    const paginaErro = screen.getByTestId('pagina-404');
+    expect(paginaErro).toContainHTML('<h1>Ops! Não encontramos a página</h1>');
+  });
+});
+
+
+-- 
+TESTE DE HOOKS 
+import { renderHook } from '@testing-library/react';
+import { useState, useEffect } from 'react';
+
+test('Hooks', () => {
+  const { result } = renderHook(() => {
+    const [nome, setNome] = useState('');
+    useEffect(() => {
+      setNome('Alice');
+    }, []);
+
+    return nome;
+  });
+
+  expect(result.current).toBe('Alice');
+});
+
+
+import { act, renderHook } from '@testing-library/react';
+import { buscaTransacoes } from '../services/transacoes';
+import useListaTransacoes from './useListaTransacoes';
+
+jest.mock('../services/transacoes');
+
+const mockTransacao = [
+    {
+      id: 1,
+      transacao: 'Depósito',
+      valor: '100',
+      data: '22/11/2022',
+      mes: 'Novembro',
+    },
+  ];
+
+  describe('hooks/useListaTransacoes.js', () => {
+    test('Deve retornar uma lista de transações e uma função que a atualiza', async () => {
+      buscaTransacoes.mockImplementation(() => mockTransacao);
+  
+      const { result } = renderHook(() => useListaTransacoes());
+      expect(result.current[0]).toEqual([]);
+  
+      await act(async () => {
+        result.current[1]();
+      });
+  
+      expect(result.current[0]).toEqual(mockTransacao);
+    });
+  });
+
+  import { renderHook, act } from '@testing-library/react';
+import { buscaSaldo } from '../services/saldo';
+import useSaldo from './useSaldo';
+
+jest.mock('../services/saldo');
+
+const mockSaldo = {
+    valor: 100,
+  };
+
+  describe('hooks/useSaldo()', () => {
+    test('Deve retornar o saldo e uma função para atualizá-lo', async () => {
+      buscaSaldo.mockImplementation(() => mockSaldo.valor);
+      const { result } = renderHook(() => useSaldo());
+  
+      expect(result.current[0]).toEqual(0);
+  
+      await act(async () => {
+        result.current[1]();
+      });
+  
+      expect(result.current[0]).toEqual(mockSaldo.valor);
+    });
+  });
+
+  //npm run test:coverage
+
